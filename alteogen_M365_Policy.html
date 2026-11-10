@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>M365 정책 쉽게 보기</title>
+<style>
+:root{--navy:#1b2a4a;--blue:#1f5fd1;--sky:#eaf1fc;--line:#dde4ef;--gray:#5b6573;--muted:#8a94a6;--bg:#f4f6f9;
+--ok:#1f8a4c;--okbg:#e3f4ea;--no:#c4372b;--nobg:#fbe6e3;--part:#b7700f;--partbg:#fdf0dc;--int:#2e7d4f;--conf:#d9822b;--hc:#c4372b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--navy);font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-serif;font-size:15px;line-height:1.6}
+.wrap{max-width:1040px;margin:0 auto;padding:0 16px}
+header{background:var(--navy);color:#fff;padding:26px 0 30px}
+header small{color:#c9d6ee;font-weight:700;letter-spacing:.08em;font-size:12px}
+header h1{margin:6px 0 6px;font-size:27px;line-height:1.3}
+header p{margin:0;color:#dce4f2}
+.pill{display:inline-block;margin-top:12px;background:#ffb37a;color:var(--navy);font-weight:700;border-radius:999px;padding:4px 12px;font-size:13px}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:-18px}
+.rule{background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 4px 16px rgba(27,42,74,.08);border-top:5px solid var(--blue)}
+.rule .ic{font-size:26px;line-height:1}
+.rule b{display:block;font-size:17px;margin:6px 0 4px}
+.rule span{color:var(--gray);font-size:14px}
+.rule:nth-child(2){border-top-color:var(--conf)} .rule:nth-child(3){border-top-color:var(--ok)}
+section{background:#fff;border-radius:14px;padding:20px 22px;margin-top:18px;border:1px solid var(--line)}
+h2{margin:0 0 4px;font-size:21px}
+.lead{color:var(--gray);margin:0 0 14px}
+/* 상황 확인 */
+.pick{display:grid;gap:12px}
+.pick .q{font-weight:700;margin-bottom:6px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts button{font:inherit;font-size:14px;border:1.5px solid var(--line);background:#fff;color:var(--navy);border-radius:10px;padding:8px 12px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.opts button:hover{border-color:var(--blue)}
+.opts button[aria-pressed="true"]{border-color:var(--blue);background:var(--sky);color:var(--blue);font-weight:700}
+.result{margin-top:16px;border-radius:14px;padding:16px 18px;border:2px solid var(--line)}
+.result.ok{background:var(--okbg);border-color:#9fd3b3} .result.no{background:var(--nobg);border-color:#efb4ac} .result.part{background:var(--partbg);border-color:#f0cf98}
+.result .big{font-size:22px;font-weight:800;display:flex;align-items:center;gap:10px}
+.result.ok .big{color:var(--ok)} .result.no .big{color:var(--no)} .result.part .big{color:var(--part)}
+.result .why{margin:6px 0 0;color:var(--navy)}
+.result .how{margin:8px 0 0;background:rgba(255,255,255,.7);border-radius:10px;padding:8px 12px;font-size:14px}
+.result .how b{color:var(--blue)}
+.result .anz{margin-top:8px;font-size:12.5px;color:var(--gray)}
+/* 규칙표 */
+.tbl{overflow-x:auto}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:700px;font-size:14px}
+th,td{padding:10px;border-bottom:1px solid var(--line);text-align:center}
+th{font-size:13px;color:var(--gray);font-weight:700;background:#fafbfd}
+th:first-child,td:first-child{text-align:left}
+td:first-child b{display:block}
+td:first-child span{font-size:12.5px;color:var(--gray)}
+.y,.n,.p{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;font-weight:800}
+.y{background:var(--okbg);color:var(--ok)} .n{background:var(--nobg);color:var(--no)} .p{background:var(--partbg);color:var(--part);font-size:12px;width:auto;padding:0 8px;border-radius:999px;height:26px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px;font-size:13px;color:var(--gray);align-items:center}
+/* 등급 */
+.grades{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.g{border-radius:14px;padding:16px 18px;border:1px solid var(--line);position:relative}
+.g .lv{display:inline-block;font-size:12px;font-weight:800;color:#fff;border-radius:999px;padding:2px 10px}
+.g h3{margin:8px 0 2px;font-size:18px}
+.g .ex{color:var(--gray);font-size:13.5px;margin:0 0 10px}
+.g dl{margin:0;display:grid;grid-template-columns:90px 1fr;gap:4px 8px;font-size:14px}
+.g dt{color:var(--gray)} .g dd{margin:0;font-weight:700}
+.g.i{background:#f1f9f4;border-color:#bfe2cc} .g.i .lv{background:var(--int)}
+.g.c{background:#fdf5ec;border-color:#f1d1ac} .g.c .lv{background:var(--conf)}
+.g.h{background:#fdf0ee;border-color:#f0c2bb} .g.h .lv{background:var(--hc)}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:14px;font-size:14px}
+.flow span{background:var(--sky);border-radius:999px;padding:5px 12px;font-weight:700;color:var(--blue)}
+.flow i{color:var(--muted);font-style:normal}
+/* FAQ */
+.search{width:100%;font:inherit;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+details{border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:#fff}
+summary{cursor:pointer;padding:12px 14px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:flex-start}
+summary::-webkit-details-marker{display:none}
+summary .tg{flex:none;font-size:12px;border-radius:999px;padding:1px 8px;margin-top:2px}
+.tg.ok{background:var(--okbg);color:var(--ok)} .tg.no{background:var(--nobg);color:var(--no)} .tg.part{background:var(--partbg);color:var(--part)}
+details>div{padding:0 14px 12px 14px;color:var(--gray);font-size:14px}
+details[open]{border-color:var(--blue)}
+/* 체크 */
+.chk{display:grid;gap:8px}
+.chk label{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.chk input{width:18px;height:18px;margin-top:2px;accent-color:var(--blue);flex:none}
+.chk label:has(input:checked){background:var(--sky);border-color:var(--blue)}
+textarea,input[type=text]{width:100%;font:inherit;font-size:14px;border:1.5px solid var(--line);border-radius:10px;padding:9px 12px}
+textarea{min-height:90px;resize:vertical}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.row input{flex:1 1 220px;width:auto}
+.btn{font:inherit;font-size:14px;font-weight:700;border:0;border-radius:10px;padding:10px 16px;background:var(--blue);color:#fff;cursor:pointer}
+.btn.g2{background:#fff;color:var(--blue);border:1.5px solid var(--blue)}
+.toast{color:var(--ok);font-size:13.5px;font-weight:700}
+.f2x{display:grid;grid-template-columns:1fr 1fr;gap:8px}.q2{font-weight:700;margin:14px 0 6px}#s5 textarea{min-height:70px}.btn[disabled]{opacity:.5;cursor:default}
+@media (max-width:600px){.f2x{grid-template-columns:1fr}}
+.foot{color:var(--muted);font-size:12.5px;text-align:center;padding:24px 0 40px}
+.anz-badge{font-size:12px;background:var(--partbg);color:var(--part);border-radius:999px;padding:1px 8px;font-weight:700}
+@media (max-width:600px){header h1{font-size:22px}section{padding:16px}.result .big{font-size:19px}}
+@media print{.opts,.result,.search,.row,#s5{display:none}details{break-inside:avoid}details div{display:block}body{background:#fff}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <small>알테오젠 M365 · 운영 정책 기본안</small>
+  <h1>M365, 이렇게 씁니다 — 정책 쉽게 보기</h1>
+  <p>"이 상황에서 이거 되나요?"를 바로 확인할 수 있게 정리했습니다. 확정 전 기본안이며, 부서 의견을 받아 12월 초에 확정합니다.</p>
+  <span class="pill">부서 의견 회신: 11/17(화) 회의 전까지</span>
+</div></header>
+
+<main class="wrap">
+  <div class="rules">
+    <div class="rule"><div class="ic">💻</div><b>회사 PC면 다 됩니다</b><span>회사에 등록한 PC는 사무실·집·출장지 어디서든 지금처럼 모든 기능을 씁니다.</span></div>
+    <div class="rule"><div class="ic">🏠</div><b>개인 PC·휴대폰은 "보기·작업"까지</b><span>열어 보고 고치는 건 되지만, 내려받기·인쇄·복사는 막힙니다. 회사 자료가 개인 기기에 남지 않게 하기 위해서입니다.</span></div>
+    <div class="rule"><div class="ic">📤</div><b>밖으로 보낼 땐 승인</b><span>외부로 나가는 문서는 문서반출 시스템에서 그룹장 승인 한 번으로 보냅니다. 사내 공유는 승인 없이 바로 됩니다.</span></div>
+  </div>
+
+  <section id="s1">
+    <h2>내 상황으로 확인하기</h2>
+    <p class="lead">세 가지만 고르면 "된다 / 안 된다 / 이렇게 하면 된다"를 알려 드립니다.</p>
+    <div class="pick">
+      <div><div class="q">① 어떤 기기로?</div><div class="opts" data-k="dev">
+        <button data-v="corp">💻 회사 PC(등록됨)</button><button data-v="corpbad">⚠️ 회사 PC(보안 업데이트 안 됨)</button><button data-v="home">🏠 개인·집 PC</button><button data-v="app">📱 휴대폰 회사 앱</button><button data-v="mweb">🌐 휴대폰 웹 브라우저</button></div></div>
+      <div><div class="q">② 어디서?</div><div class="opts" data-k="loc">
+        <button data-v="in">🏢 회사 안</button><button data-v="out">🚆 회사 밖(국내)</button><button data-v="abroad">✈️ 해외</button></div></div>
+      <div><div class="q">③ 무엇을 하려고?</div><div class="opts" data-k="act">
+        <button data-v="view">👀 메일·문서 보기</button><button data-v="edit">✏️ 문서 편집</button><button data-v="up">⬆️ 파일 올리기</button><button data-v="down">⬇️ 내 기기에 저장</button><button data-v="print">🖨️ 인쇄</button><button data-v="copy">📋 복사·붙여넣기</button><button data-v="cap">📸 화면 캡처</button><button data-v="send">📤 외부로 문서 보내기</button></div></div>
+    </div>
+    <div class="result" id="res"><div class="big">위에서 하나씩 골라 주세요</div></div>
+  </section>
+
+  <section id="s2">
+    <h2>한 장 규칙표</h2>
+    <p class="lead">기기별로 되는 것과 안 되는 것입니다. 회사 안이든 밖이든 같습니다.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>기기</th><th>보기</th><th>편집</th><th>올리기</th><th>저장</th><th>인쇄</th><th>복사</th><th>캡처</th></tr></thead>
+      <tbody>
+        <tr><td><b>💻 회사 PC(등록됨)</b><span>Outlook·Teams·Office 앱 그대로</span></td><td><i class="y">✓</i></td><td><i class="y">✓</i></td><td><i class="y">✓</i></td><td><i class="y">✓</i></td><td><i class="y">✓</i></td><td><i class="y">✓</i></td><td><i class="y">✓</i></td></tr>
+        <tr><td><b>🏠 개인·집 PC</b><span>웹 브라우저로만 · 회사 안에서는 연결 불가</span></td><td><i class="y">✓</i></td><td><i class="y">✓</i></td><td><i class="y">✓</i></td><td><i class="n">✕</i></td><td><i class="n">✕</i></td><td><i class="n">✕</i></td><td><i class="p">제한 없음</i></td></tr>
+        <tr><td><b>📱 휴대폰 회사 앱</b><span>Outlook·Teams·OneDrive·Office·Copilot</span></td><td><i class="y">✓</i></td><td><i class="y">✓</i></td><td><i class="y">✓</i></td><td><i class="n">✕</i></td><td><i class="n">✕</i></td><td><i class="p">회사 앱끼리만</i></td><td><i class="n">✕</i></td></tr>
+        <tr><td><b>🌐 휴대폰 웹 브라우저</b><span>접속 자체를 막음 → 회사 앱 설치</span></td><td><i class="n">✕</i></td><td><i class="n">✕</i></td><td><i class="n">✕</i></td><td><i class="n">✕</i></td><td><i class="n">✕</i></td><td><i class="n">✕</i></td><td><i class="n">✕</i></td></tr>
+      </tbody>
+    </table></div>
+    <div class="legend"><span><i class="y">✓</i> 가능</span><span><i class="n">✕</i> 막힘</span><span>⚠️ 회사 PC도 보안 업데이트·백신·암호화가 꺼져 있으면 잠시 막히고, 맞추면 자동으로 풀립니다</span><span>✈️ 해외는 출장 기간을 신청하면 위 표대로 씁니다</span></div>
+  </section>
+
+  <section id="s3">
+    <h2>문서 등급 — 신호등처럼 보세요</h2>
+    <p class="lead">새 문서는 자동으로 초록(사내)이 붙습니다. 중요한 문서만 올려 주시면 됩니다.</p>
+    <div class="grades">
+      <div class="g i"><span class="lv">초록 · Internal(사내)</span><h3>대부분의 문서</h3><p class="ex">일반 업무 문서, 공지, 회의록</p><dl><dt>누가 보나</dt><dd>전 임직원</dd><dt>밖으로</dt><dd>그냥은 안 열림 → 반출 승인</dd><dt>내가 할 일</dt><dd>없음(자동)</dd></dl></div>
+      <div class="g c"><span class="lv">주황 · Confidential(기밀)</span><h3>우리 팀·과제만</h3><p class="ex">연구·실험 데이터, 임상·규제 문서, SOP</p><dl><dt>누가 보나</dt><dd>지정 부서·과제 그룹</dd><dt>밖으로</dt><dd>반출 승인 후 발송</dd><dt>내가 할 일</dt><dd>등급 올리기(또는 자동)</dd></dl></div>
+      <div class="g h"><span class="lv">빨강 · Highly Confidential(최고기밀)</span><h3>꼭 필요한 사람만</h3><p class="ex">특허 출원 전 기술, 기술이전 계약, 인사·개인정보</p><dl><dt>누가 보나</dt><dd>최소 인원</dd><dt>밖으로</dt><dd>사전 승인 필수</dd><dt>표시</dt><dd>워터마크</dd></dl></div>
+    </div>
+    <div class="flow"><b style="margin-right:4px">외부로 보낼 때</b><span>문서반출 시스템에서 신청</span><i>→</i><span>그룹장 승인 1번</span><i>→</i><span>보호 풀려서 발송</span><i>→</i><span>기록 남음</span></div>
+    <p class="lead" style="margin:10px 0 0;font-size:14px">등급을 낮출 때는 사유를 적습니다. 등급 이름(한글/영문)과 부서 전용 등급은 현재 검토 중이며, 정해지면 안내드립니다.</p>
+  </section>
+
+  <section id="s4">
+    <h2>이럴 땐 어떻게?</h2>
+    <input class="search" id="q" type="search" placeholder="검색: 집, 출장, 인쇄, 카톡, 휴대폰, 외부 …">
+    <div id="faq"></div>
+  </section>
+
+  <section id="s5">
+    <h2>우리 부서는 어때요? — 의견 보내기</h2>
+    <p class="lead">체크하고 적은 뒤 <b>[의견 보내기]</b>를 눌러 주세요. 기한: <b>11/17(화) 회의 전</b></p>
+    <div class="f2x"><input type="text" id="dept" placeholder="부서 (필수)"><input type="text" id="name" placeholder="이름 (필수)"></div>
+    <div class="q2">우리 부서에 해당하는 것 (여러 개 선택)</div>
+    <div class="chk" id="chk"></div>
+    <div class="q2">문제가 되는 상황 — 어떤 업무에서 무엇이 막히나요?</div>
+    <textarea id="problem" placeholder="예) 협력 CRO에 주 2~3회 임상 자료를 보내는데, 그룹장 부재 시 승인이 늦어지면 일정이 밀림"></textarea>
+    <div class="q2">이렇게 바뀌면 좋겠다 — 개선 의견</div>
+    <textarea id="improve" placeholder="예) 그룹장 부재 시 대리 승인자 지정"></textarea>
+    <div class="q2">정책 협의 참고 (선택) — 상시 접속이 필요한 해외 국가, 재택 인원, 공용 PC 대수 등</div>
+    <input type="text" id="extra" placeholder="예) 미국(파트너사), 재택 2명">
+    <div class="row"><button class="btn" id="send">의견 보내기</button><button class="btn g2" id="none">해당 없음으로 보내기</button><span class="toast" id="toast" hidden></span></div>
+    <p class="lead" id="fbNote" style="margin:10px 0 0;font-size:13px" hidden>지금은 바로 보내기가 연결되지 않아 내용을 복사했습니다. Teams TFT 채널이나 이승현 대리님께 붙여 넣어 주세요.</p>
+  </section>
+  <div class="foot">알테오젠 M365 협업·보안·AI 전환 · 2026-11-10 주간 TF 회의 · 운영 정책 기본안(확정 전) · 문의: Teams TFT 채널</div>
+</main>
+
+<script>
+(function(){
+/* ▼ 의견 수집 주소(Google Apps Script 웹 앱 또는 Power Automate HTTP 트리거 URL) — 넣으면 [의견 보내기]가 바로 전송됩니다 */
+var ENDPOINT='https://script.google.com/macros/s/AKfycbxGCXnaIkWRvfh2qSqO1MOw1p9mif8WDFVU5cngYCZQfX8kaJpfY16b-w7kffJFJp8p/exec';
+var S={dev:null,loc:null,act:null};
+var A={view:'메일·문서 보기',edit:'문서 편집',up:'파일 올리기',down:'내 기기에 저장',print:'인쇄',copy:'복사·붙여넣기',cap:'화면 캡처',send:'외부로 문서 보내기'};
+var anz={down:'회사 PC로 회사 밖에서 내려받기를 막을지는 부서 의견을 받아 정합니다.',home:'개인 PC 외부 접속을 전 임직원에게 열지, 승인받은 사람만 열지는 부서 의견을 받아 정합니다.'};
+function R(t,big,why,how,note){return {t:t,big:big,why:why,how:how||'',note:note||''}}
+function judge(d,l,a){
+  if(d==='mweb')return R('no','✕ 안 됩니다','휴대폰 웹 브라우저로는 회사 M365에 접속할 수 없습니다.','<b>이렇게 하세요</b> · Outlook·Teams·OneDrive·Office 앱을 설치해 회사 계정으로 로그인하세요.');
+  if(l==='abroad')return R('part','△ 출장 신청하면 됩니다','대한민국 밖에서는 기본적으로 접속이 막힙니다.','<b>이렇게 하세요</b> · 출국 전에 출장 기간을 신청하면 그 기간에는 회사 밖(국내)과 똑같이 씁니다. 해외 상주 인원·파트너 국가는 따로 허용합니다.');
+  if(d==='corpbad')return R('part','△ 잠시 막힙니다','회사 PC라도 보안 조건(Windows 업데이트·백신·디스크 암호화)이 맞지 않으면 접속이 막힙니다.','<b>이렇게 하세요</b> · 업데이트·재부팅 등 화면 안내대로 조치하면 자동으로 다시 열립니다. 해결이 안 되면 IT 담당자에게 문의하세요.');
+  if(a==='send'){
+    if(d==='home'||d==='app')return R('part','△ 회사 PC에서 신청하세요','외부 반출은 문서반출 시스템에서 승인받아 보내는 방식입니다.','<b>이렇게 하세요</b> · 회사 PC에서 반출 신청 → 그룹장 승인 1번 → 보호가 풀린 문서로 발송. 사내 직원에게 공유하는 건 승인 없이 바로 됩니다.','발송 방식(승인 후 바로 발송 / 내려받아 첨부)은 현재 협의 중이며, 정해지면 안내드립니다.');
+    return R('part','△ 승인받고 보냅니다','회사 문서는 밖으로 그냥 보내면 받는 사람이 열 수 없습니다.','<b>이렇게 하세요</b> · 문서반출 시스템에서 신청 → 그룹장 승인 1번 → 보호가 풀린 문서로 발송(기록이 남습니다). 사내 직원끼리는 승인 없이 바로 공유됩니다.','발송 방식(승인 후 바로 발송 / 내려받아 첨부)은 현재 협의 중이며, 정해지면 안내드립니다.');}
+  if(d==='corp'){var r=R('ok','✓ 됩니다','회사에 등록된 PC는 어디서든 사내와 같아서 '+A[a]+'에 제한이 없습니다.');if(a==='down'&&l==='out')r.note=anz.down;return r}
+  if(d==='home'){
+    if(l==='in')return R('no','✕ 안 됩니다','개인 PC는 회사 네트워크에 연결할 수 없습니다.','<b>이렇게 하세요</b> · 회사 PC를 쓰거나, 꼭 필요한 업무라면 부서 의견으로 알려 주세요(예외 검토).');
+    if(a==='cap')return R('ok','✓ 됩니다','개인 PC의 화면 캡처는 막지 않습니다. 다만 회사 자료를 캡처해 외부로 보내는 것은 보안 규정 위반입니다.','','');
+    if(['view','edit','up'].indexOf(a)>=0)return R('ok','✓ 됩니다(웹 브라우저로)','개인 PC는 웹 브라우저(m365.cloud.microsoft)로 들어가면 '+A[a]+'까지 됩니다.','<b>팁</b> · Word·Excel 문서도 브라우저 안에서 열고 고칠 수 있습니다.',anz.home);
+    var V={down:'회사 자료를 내 PC에 저장할',print:'회사 자료를 인쇄할',copy:'회사 자료를 복사해 다른 곳에 붙여 넣을'};return R('no','✕ 안 됩니다','개인 PC에서는 '+V[a]+' 수 없습니다. 회사 자료가 개인 PC에 남지 않게 하기 위해서입니다.','<b>이렇게 하세요</b> · 회사 PC를 쓰거나, 웹 브라우저에서 열어 보고 고치는 것까지는 됩니다. 이 제한 때문에 막히는 업무가 있으면 부서 의견으로 알려 주세요.',anz.home);}
+  if(d==='app'){
+    if(['view','edit','up'].indexOf(a)>=0)return R('ok','✓ 됩니다(회사 앱에서)','휴대폰 회사 앱(Outlook·Teams·OneDrive·Office)에서 '+{view:'메일·문서를 볼',edit:'문서를 고칠',up:'파일을 올릴'}[a]+' 수 있습니다.');
+    if(a==='copy')return R('part','△ 회사 앱끼리만 됩니다','Outlook에서 복사해 Teams에 붙이는 건 되지만, 카카오톡·메모 앱 등 다른 앱으로는 붙여 넣을 수 없습니다.');
+    return R('no','✕ 안 됩니다','휴대폰에서는 회사 자료의 저장·인쇄·화면 캡처가 막힙니다. 휴대폰 전체가 아니라 회사 앱 안의 자료만 보호합니다.','<b>이렇게 하세요</b> · 회사 PC에서 처리하세요. 휴대폰으로 꼭 해야 하는 업무가 있으면 부서 의견으로 알려 주세요.');}
+}
+function show(){var el=document.getElementById('res');
+  if(!S.dev||!S.loc||!S.act){el.className='result';el.innerHTML='<div class="big">'+(!S.dev?'① 기기':!S.loc?'② 장소':'③ 하려는 일')+'를 골라 주세요</div>';return}
+  var r=judge(S.dev,S.loc,S.act);el.className='result '+r.t;
+  el.innerHTML='<div class="big">'+r.big+'</div><p class="why">'+r.why+'</p>'+(r.how?'<div class="how">'+r.how+'</div>':'')+(r.note?'<div class="anz"><span class="anz-badge">협의 중</span> '+r.note+'</div>':'')}
+document.querySelectorAll('.opts').forEach(function(g){var k=g.getAttribute('data-k');g.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-pressed','false');b.onclick=function(){g.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed','false')});b.setAttribute('aria-pressed','true');S[k]=b.getAttribute('data-v');show()}})});
+
+var F=[
+['ok','집에서 개인 노트북으로 메일·Teams를 볼 수 있나요?','네. 웹 브라우저로 들어가면 메일·Teams·문서를 보고 고칠 수 있습니다. 첨부파일 내려받기·인쇄·복사만 막힙니다.'],
+['ok','회사 노트북을 집·카페·출장지에서 쓰면요?','회사에 등록된 PC라면 어디서든 사무실과 똑같이 모든 기능을 씁니다.'],
+['part','해외 출장 가서도 쓸 수 있나요?','기본은 해외 접속 차단입니다. 출국 전에 출장 기간을 신청하면 그 기간에는 국내와 같이 씁니다.'],
+['no','휴대폰 크롬·사파리로 회사 메일 보기','막힙니다. Outlook·Teams 등 회사 앱을 설치해서 쓰세요.'],
+['part','휴대폰 Outlook에서 복사해서 카톡에 붙이기','안 됩니다. 회사 앱(Outlook·Teams·OneDrive·Office)끼리만 복사·붙여넣기가 됩니다.'],
+['no','휴대폰으로 회사 문서 캡처','회사 앱 화면은 캡처가 막힙니다. 휴대폰 사진·개인 앱은 그대로이고 회사가 볼 수 없습니다.'],
+['part','협력사·CRO에 파일을 보내야 해요','문서반출 시스템에서 신청 → 그룹장 승인 1번 → 보호가 풀린 문서로 보냅니다. 지금(반출 승인 + 복호화 2단계)보다 단계가 줄어듭니다.'],
+['ok','옆 팀 동료에게 파일 공유','사내 공유는 승인 없이 바로 됩니다. 단, 기밀·최고기밀 문서는 권한이 있는 사람만 열립니다.'],
+['ok','문서마다 등급을 직접 붙여야 하나요?','아닙니다. 새 문서는 자동으로 "사내" 등급이 붙습니다. 중요한 문서만 기밀·최고기밀로 올리면 되고, 개인정보가 들어가면 자동으로 올라가기도 합니다.'],
+['part','회사 PC인데 갑자기 접속이 안 돼요','Windows 업데이트·백신·암호화 같은 보안 조건이 꺼져 있으면 잠시 막힙니다. 화면 안내대로 조치하면 자동으로 풀립니다.'],
+['part','로그인할 때 휴대폰 인증을 매번 해야 하나요?','(안) 회사 PC는 90일에 한 번, 개인 기기는 매일 한 번 휴대폰 승인을 합니다. 부서 의견을 받아 확정합니다.'],
+['no','개인 노트북을 회사 랜선·와이파이에 연결','개인 PC는 회사 네트워크에 연결할 수 없습니다. 꼭 필요한 업무면 부서 의견으로 알려 주세요.'],
+['part','휴대폰을 잃어버렸어요','IT 담당자에게 알리면 휴대폰 안의 회사 앱 자료만 원격으로 지웁니다. 개인 사진·앱은 그대로입니다.'],
+['part','NAS·공유 PC에 있는 파일은 어떻게 하나요?','클라우디움 밖(부서 NAS, 공유 폴더를 연 PC, 외장 디스크, PC에만 있는 업무 파일)에 있는 자료는 위치·용량·사용 부서·관리자·이관 필요 여부를 체크리스트로 <b>11/20(금)까지</b> 알려 주세요. 신고되지 않은 자료는 이관 대상에서 빠집니다.'],
+['part','외부에서 회사 PC로 내려받기를 막나요?','기본안은 막지 않습니다(사내와 동일). 막아야 할지 부서 의견을 받아 정합니다.']];
+var TG={ok:'됨',no:'안 됨',part:'조건부'};
+function faq(){var q=document.getElementById('q').value.trim();document.getElementById('faq').innerHTML=F.filter(function(f){return !q||(f[1]+f[2]).indexOf(q)>=0}).map(function(f){return '<details><summary><span class="tg '+f[0]+'">'+TG[f[0]]+'</span>'+f[1]+'</summary><div>'+f[2]+'</div></details>'}).join('')||'<p class="lead">해당하는 질문이 없습니다. TFT 채널로 물어봐 주세요.</p>'}
+document.getElementById('q').oninput=faq;faq();
+
+var C=['외부(개인 PC)에서 파일을 내려받거나 인쇄해야 하는 업무가 있다','휴대폰으로 자료를 저장·인쇄하거나, 회사 앱 외 다른 앱을 꼭 써야 한다','협력사·연구기관·CRO 등 외부로 문서를 자주 보낸다(주 1회 이상)','승인이 늦어지면 곤란한 외부 발송 업무가 있다','재택근무·해외 출장·해외 파트너 접속이 잦다','여러 사람이 같이 쓰는 공용 PC가 있다','복호화한 문서를 PC에 두고 계속 써야 하는 업무가 있다(예: 서열 비교)','다른 부서·법인과 기밀 문서를 자주 같이 본다','NAS·공유 PC·외장 디스크 등 클라우디움 밖에 공유 파일이 있다(체크리스트 11/20까지)'];
+document.getElementById('chk').innerHTML=C.map(function(c,i){return '<label><input type="checkbox" value="'+i+'"><span>'+c+'</span></label>'}).join('');
+function $(id){return document.getElementById(id)}
+function msg(m,bad){var t=$('toast');t.textContent=m;t.style.color=bad?'var(--no)':'var(--ok)';t.hidden=false}
+function data(none){return {dept:$('dept').value.trim(),name:$('name').value.trim(),checks:none?['해당 없음']:[].slice.call(document.querySelectorAll('#chk input:checked')).map(function(x){return C[+x.value]}),problem:none?'':$('problem').value.trim(),improve:none?'':$('improve').value.trim(),extra:none?'':$('extra').value.trim(),page:'2026-11-10 정책 요약',at:new Date().toISOString()}}
+function text(d){return '[M365 정책 부서 의견] '+d.dept+' '+d.name+'\n■ 해당 사항\n'+(d.checks.length?d.checks.map(function(c){return '- '+c}).join('\n'):'- 없음')+'\n■ 문제 상황: '+(d.problem||'없음')+'\n■ 개선 의견: '+(d.improve||'없음')+(d.extra?'\n■ 참고: '+d.extra:'')}
+function copyFallback(d){var s=text(d);var done=function(){msg('복사했습니다');$('fbNote').hidden=false};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(s).then(done,fb);else fb();
+  function fb(){var ta=document.createElement('textarea');ta.value=s;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(ta);done()}}
+function submit(none){var d=data(none);
+  if(!d.dept||!d.name){msg('부서와 이름을 적어 주세요',true);($('dept').value?$('name'):$('dept')).focus();return}
+  if(!none&&!d.checks.length&&!d.problem&&!d.improve&&!d.extra){msg('내용이 없으면 [해당 없음으로 보내기]를 눌러 주세요',true);return}
+  if(!ENDPOINT){copyFallback(d);return}
+  var bs=[$('send'),$('none')];bs.forEach(function(b){b.disabled=true});msg('보내는 중…');
+  fetch(ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(d)})
+   .then(function(){msg('보냈습니다. 감사합니다! 고칠 내용이 있으면 다시 보내 주세요(마지막 제출 기준으로 정리합니다).');[].slice.call(document.querySelectorAll('#chk input')).forEach(function(x){x.checked=false});['problem','improve','extra'].forEach(function(k){$(k).value=''})})
+   .catch(function(){msg('보내지 못했습니다(네트워크).',true);copyFallback(d)})
+   .then(function(){bs.forEach(function(b){b.disabled=false})})}
+$('send').onclick=function(){submit(false)};$('none').onclick=function(){submit(true)};
+})();
+</script>
+</body>
+</html>
